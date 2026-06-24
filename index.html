@@ -1,0 +1,2450 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام كاشير - صيانة كمبيوتر</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root {
+            --bg: #f0f2f5;
+            --card: #ffffff;
+            --text: #1a2332;
+            --border: #d1d5db;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --header-bg: #1e293b;
+            --header-text: #f8fafc;
+            --product-card-bg: #ffffff;
+            --product-hover: #f8fafc;
+            --section-soft: #dbeafe;
+            --section-hard: #fef3c7;
+            --section-parts: #dcfce7;
+        }
+        body.dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --border: #334155;
+            --shadow: 0 4px 12px rgba(0,0,0,0.4);
+            --header-bg: #0b1120;
+            --header-text: #e2e8f0;
+            --product-card-bg: #1e293b;
+            --product-hover: #2d3a4f;
+            --section-soft: #1e3a5f;
+            --section-hard: #5f3a1e;
+            --section-parts: #1e5f3a;
+        }
+        body { background: var(--bg); color: var(--text); transition: all 0.3s; }
+        .app-container { max-width: 1600px; margin: 0 auto; padding: 0 16px; }
+        
+        .header {
+            background: var(--header-bg);
+            color: var(--header-text);
+            padding: 12px 24px;
+            border-radius: 0 0 20px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 8px; }
+        .header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); transform: scale(1.02); }
+        .btn-success { background: var(--success); color: #fff; }
+        .btn-success:hover { background: #15803d; }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-warning { background: var(--warning); color: #1e293b; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .btn-outline:hover { background: var(--border); }
+        .btn-sm { padding: 4px 10px; font-size: 0.8rem; }
+        .btn-xs { padding: 2px 8px; font-size: 0.7rem; }
+        
+        .icon-btn { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--header-text); padding: 4px 8px; border-radius: 8px; }
+        .icon-btn:hover { background: rgba(255,255,255,0.1); }
+        
+        .card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .flex { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .flex-between { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        
+        .input, .select, .textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+        .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--primary); }
+        .label { font-weight: 600; display: block; margin-bottom: 4px; }
+        
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); }
+        th { background: var(--bg); font-weight: 700; }
+        tr:hover { background: var(--bg); }
+        
+        .badge {
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            display: inline-block;
+        }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        .badge-secondary { background: #e2e8f0; color: #475569; }
+        
+        .hidden { display: none !important; }
+        .mt-16 { margin-top: 16px; }
+        .mb-16 { margin-bottom: 16px; }
+        .text-center { text-align: center; }
+        .text-muted { color: var(--border); }
+        
+        .search-box { position: relative; }
+        .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--border); }
+        .search-box input { padding-right: 40px; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: var(--card);
+            padding: 30px;
+            border-radius: 24px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* Devices List in Repair */
+        .devices-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .device-item {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 8px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+            border: 1px solid var(--border);
+        }
+        .device-item .device-status {
+            font-size: 0.8rem;
+        }
+        .device-item .device-actions {
+            display: flex;
+            gap: 4px;
+        }
+        .device-item .device-actions .btn { padding: 2px 6px; font-size: 0.7rem; }
+        .device-item .device-details { font-size: 0.8rem; color: var(--text-muted); }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+            padding: 4px;
+        }
+        .product-card {
+            background: var(--product-card-bg);
+            border-radius: 16px;
+            padding: 16px;
+            border: 2px solid var(--border);
+            transition: 0.3s;
+            cursor: grab;
+            position: relative;
+            text-align: center;
+        }
+        .product-card:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: var(--shadow); }
+        .product-card .drag-handle { position: absolute; top: 8px; left: 8px; color: var(--border); font-size: 1.2rem; cursor: grab; }
+        .product-card .product-image { width: 100%; height: 100px; border-radius: 12px; object-fit: cover; background: var(--bg); margin-bottom: 10px; }
+        .product-card .product-image-placeholder { width: 100%; height: 100px; border-radius: 12px; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--border); margin-bottom: 10px; }
+        .product-card .product-name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+        .product-card .product-price { color: var(--primary); font-weight: 700; font-size: 1.1rem; }
+        .product-card .product-qty { font-size: 0.8rem; color: var(--text-muted); margin: 4px 0; }
+        .product-card .product-actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+
+        .settings-layout { display: grid; grid-template-columns: 220px 1fr; gap: 20px; }
+        .settings-sidebar {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            height: fit-content;
+        }
+        .settings-sidebar button {
+            display: block;
+            width: 100%;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            border: none;
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text);
+            font-weight: 600;
+            text-align: right;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.95rem;
+        }
+        .settings-sidebar button:hover { background: var(--bg); }
+        .settings-sidebar button.active { background: var(--primary); color: white; }
+        .settings-sidebar button i { margin-left: 10px; width: 20px; }
+        .settings-panel { display: none; }
+        .settings-panel.active { display: block; }
+
+        .lang-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: 30px;
+            border: 2px solid var(--border);
+        }
+        .lang-toggle button {
+            background: transparent;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text);
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+        .lang-toggle button.active { background: var(--primary); color: white; }
+
+        .perm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px,1fr)); gap: 8px; }
+        .perm-item { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg); border-radius: 8px; font-size: 0.9rem; }
+        .perm-item input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+
+        .image-upload-container { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .image-preview { width: 80px; height: 80px; border-radius: 12px; border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg); }
+        .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; }
+        .file-input-wrapper input[type=file] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+
+        .client-history { max-height: 250px; overflow-y: auto; }
+        .client-history-item { padding: 8px; border-bottom: 1px solid var(--border); }
+        .client-history-item:last-child { border-bottom: none; }
+
+        .view-options { display: flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: 10px; border: 1px solid var(--border); }
+        .view-options button { background: transparent; border: none; padding: 6px 12px; border-radius: 8px; cursor: pointer; color: var(--text); transition: 0.2s; font-size: 0.9rem; }
+        .view-options button.active { background: var(--primary); color: white; }
+
+        .category-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .category-tab {
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 2px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            color: var(--text);
+        }
+        .category-tab.active { border-color: var(--primary); background: var(--primary); color: white; }
+
+        .product-select-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 8px;
+            background: var(--bg);
+            border-radius: 10px;
+        }
+        .product-select-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            background: var(--card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .product-select-item:hover { border-color: var(--primary); }
+        .product-select-item input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+        .product-select-item .qty-badge { font-size: 0.7rem; padding: 1px 8px; border-radius: 10px; background: var(--border); color: var(--text); }
+
+        .invoice-items { max-height: 200px; overflow-y: auto; }
+        .invoice-item { display: flex; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid var(--border); align-items: center; }
+        .invoice-item:last-child { border-bottom: none; }
+        .invoice-total { font-size: 1.2rem; font-weight: 700; color: var(--primary); padding: 10px; background: var(--bg); border-radius: 10px; margin-top: 10px; }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: stretch; }
+            .settings-layout { grid-template-columns: 1fr; }
+            .settings-sidebar { display: flex; flex-wrap: wrap; gap: 6px; }
+            .settings-sidebar button { width: auto; flex: 1; min-width: 100px; }
+            .products-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+            .header-actions .btn span { display: none; }
+            .header-actions .btn { padding: 8px 12px; }
+            .modal-content { max-width: 100%; padding: 16px; }
+            .device-item { grid-template-columns: 1fr; gap: 6px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <!-- Header -->
+    <header class="header" id="mainHeader" style="display:none;">
+        <h1><i class="fas fa-laptop"></i> <span id="appTitle">كاشير الصيانة</span></h1>
+        <div class="header-actions" id="headerActions">
+            <span id="userDisplay" class="badge badge-info"><i class="fas fa-user"></i> Admin</span>
+            <div class="lang-toggle">
+                <button class="active" onclick="setLanguage('ar')" id="langAr">عربي</button>
+                <button onclick="setLanguage('en')" id="langEn">EN</button>
+            </div>
+            <button class="icon-btn" onclick="toggleTheme()" title="الوضع الليلي"><i class="fas fa-moon"></i></button>
+            <button class="btn btn-warning header-btn" data-perm="view_drawer" onclick="openDrawer()"><i class="fas fa-cash-register"></i> <span>الدرج</span></button>
+            <button class="btn btn-primary header-btn" data-perm="view_products" onclick="showSection('products')"><i class="fas fa-box"></i> <span>المنتجات</span></button>
+            <button class="btn btn-primary header-btn active" data-perm="view_repairs" onclick="showSection('repairs')"><i class="fas fa-tools"></i> <span>الصيانة</span></button>
+            <button class="btn btn-primary header-btn" data-perm="manage_settings" onclick="showSection('settings')"><i class="fas fa-cog"></i> <span>الإعدادات</span></button>
+            <button class="btn btn-danger" onclick="logout()"><i class="fas fa-sign-out-alt"></i> <span>خروج</span></button>
+        </div>
+    </header>
+
+    <!-- Login Screen -->
+    <div id="loginScreen" class="card" style="max-width:400px;margin:60px auto;text-align:center;">
+        <h2 style="margin-bottom:20px;"><i class="fas fa-lock"></i> <span id="loginTitle">تسجيل الدخول</span></h2>
+        <div class="mb-16">
+            <label class="label" id="usernameLabel">اسم المستخدم</label>
+            <input id="loginUser" class="input" placeholder="أدخل اسم المستخدم" value="admin">
+        </div>
+        <div class="mb-16">
+            <label class="label" id="passwordLabel">كلمة المرور</label>
+            <input id="loginPass" class="input" type="password" placeholder="أدخل كلمة المرور" value="admin123">
+        </div>
+        <button class="btn btn-primary" onclick="login()" style="width:100%;"><i class="fas fa-sign-in-alt"></i> <span id="loginBtn">دخول</span></button>
+        <div style="margin-top:16px;font-size:0.9rem;color:var(--border);">
+            <p>👤 admin | 🔑 admin123</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" style="display:none;">
+        <!-- Products Section -->
+        <section id="section-products" style="display:none;">
+            <div class="flex-between mb-16">
+                <h2><i class="fas fa-boxes"></i> <span id="productsTitle">إدارة المنتجات</span></h2>
+                <button class="btn btn-success" data-perm="add_products" onclick="openAddProduct()"><i class="fas fa-plus"></i> <span id="addProductBtn">إضافة منتج</span></button>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:16px;padding:12px 16px;background:var(--card);border-radius:12px;border:1px solid var(--border);">
+                <div class="search-box" style="flex:1;min-width:200px;">
+                    <i class="fas fa-search"></i>
+                    <input id="productSearch" class="input" placeholder="بحث بالاسم أو السعر..." oninput="renderProducts()">
+                </div>
+                <div class="view-options">
+                    <button class="active" onclick="setView('grid')" title="عرض شبكي"><i class="fas fa-th"></i></button>
+                    <button onclick="setView('list')" title="عرض جدول"><i class="fas fa-list"></i></button>
+                </div>
+                <div style="display:flex;gap:4px;align-items:center;">
+                    <i class="fas fa-sort"></i>
+                    <select id="productSort" onchange="renderProducts()" style="padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:0.85rem;">
+                        <option value="name">الاسم</option>
+                        <option value="price">السعر</option>
+                        <option value="qty">الكمية</option>
+                        <option value="mostSold">الأكثر مبيعاً</option>
+                    </select>
+                </div>
+                <span class="text-muted" id="productCount">0 منتج</span>
+            </div>
+            <div id="productsGridView" class="active" style="display:grid;">
+                <div class="products-grid" id="productsGrid"></div>
+            </div>
+            <div id="productsListView" style="display:none;">
+                <div class="card">
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th id="imageCol">الصورة</th><th id="nameCol">الاسم</th><th id="qtyCol">العدد</th><th id="sellCol">سعر البيع</th><th id="buyCol">سعر الشراء</th><th id="actionsCol">الإجراءات</th></tr></thead>
+                            <tbody id="productsTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Repairs Section -->
+        <section id="section-repairs">
+            <div class="flex-between mb-16">
+                <h2><i class="fas fa-tools"></i> <span id="repairsTitle">إدارة الصيانة</span></h2>
+                <button class="btn btn-success" data-perm="add_repairs" onclick="openAddRepair()"><i class="fas fa-plus"></i> <span id="addRepairBtn">صيانة جديدة</span></button>
+            </div>
+            <div class="card">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input id="repairSearch" class="input" placeholder="بحث باسم العميل أو رقم الموبايل..." oninput="renderRepairs()">
+                </div>
+                <div class="table-wrap mt-16">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th id="clientCol">العميل</th>
+                                <th id="phoneCol">الموبايل</th>
+                                <th id="deviceCol">الأجهزة</th>
+                                <th id="statusCol">الحالة</th>
+                                <th id="amountCol">المبلغ</th>
+                                <th id="dateCol">التاريخ</th>
+                                <th id="actionsCol">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="repairsTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Settings Section -->
+        <section id="section-settings" style="display:none;">
+            <h2 class="mb-16"><i class="fas fa-cog"></i> <span id="settingsTitle">الإعدادات المتقدمة</span></h2>
+            <div class="settings-layout">
+                <div class="settings-sidebar">
+                    <button class="active" onclick="showSettingsPanel('employees')"><i class="fas fa-users"></i> <span>الموظفين</span></button>
+                    <button onclick="showSettingsPanel('permissions')"><i class="fas fa-lock"></i> <span>الصلاحيات</span></button>
+                    <button onclick="showSettingsPanel('adminPass')"><i class="fas fa-key"></i> <span>تغيير الباسورد</span></button>
+                    <button onclick="showSettingsPanel('suppliers')"><i class="fas fa-truck"></i> <span>الموردين</span></button>
+                    <button onclick="showSettingsPanel('reports')"><i class="fas fa-chart-bar"></i> <span>التقارير</span></button>
+                    <button onclick="showSettingsPanel('logs')"><i class="fas fa-history"></i> <span>السجل</span></button>
+                </div>
+                <div class="settings-panels">
+                    <div id="panel-employees" class="settings-panel active">
+                        <div class="card">
+                            <h3><i class="fas fa-user-plus"></i> <span>إضافة موظف جديد</span></h3>
+                            <div class="grid-2">
+                                <div><label class="label">الاسم</label><input id="empName" class="input" placeholder="الاسم"></div>
+                                <div><label class="label">اسم المستخدم</label><input id="empUser" class="input" placeholder="يوزر"></div>
+                                <div><label class="label">كلمة المرور</label><input id="empPass" class="input" type="text" placeholder="باسورد"></div>
+                                <div style="display:flex;align-items:flex-end;"><button class="btn btn-success" onclick="addEmployee()" style="width:100%;"><i class="fas fa-plus"></i> <span>إضافة</span></button></div>
+                            </div>
+                            <div class="table-wrap mt-16">
+                                <table><thead><tr><th>الاسم</th><th>يوزر</th><th>الصلاحيات</th><th>حذف</th></tr></thead><tbody id="employeesTable"></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="panel-permissions" class="settings-panel">
+                        <div class="card">
+                            <h3><i class="fas fa-sliders-h"></i> <span>صلاحيات الموظفين</span></h3>
+                            <p class="text-muted mb-16">اختر موظف من القائمة ثم حدد الصلاحيات المطلوبة</p>
+                            <div class="flex mb-16">
+                                <select id="permEmployeeSelect" class="select" style="max-width:300px;" onchange="loadEmployeePermissions()">
+                                    <option value="">-- اختر موظف --</option>
+                                </select>
+                            </div>
+                            <div id="permissionsContainer" class="perm-grid"></div>
+                            <button class="btn btn-primary mt-16" onclick="savePermissions()"><i class="fas fa-save"></i> <span>حفظ الصلاحيات</span></button>
+                        </div>
+                    </div>
+                    <div id="panel-adminPass" class="settings-panel">
+                        <div class="card">
+                            <h3><i class="fas fa-key"></i> <span>تغيير باسورد الأدمن</span></h3>
+                            <div class="flex">
+                                <input id="newAdminPass" class="input" type="password" placeholder="باسورد جديد" style="max-width:300px;">
+                                <button class="btn btn-primary" onclick="changeAdminPass()"><span>تحديث</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="panel-suppliers" class="settings-panel">
+                        <div class="card">
+                            <h3><i class="fas fa-truck"></i> <span>إدارة الموردين</span></h3>
+                            <div class="flex mb-16">
+                                <input id="supplierName" class="input" placeholder="اسم المورد" style="max-width:300px;">
+                                <button class="btn btn-success" onclick="addSupplier()"><i class="fas fa-plus"></i> <span>إضافة</span></button>
+                            </div>
+                            <div class="table-wrap">
+                                <table><thead><tr><th>المورد</th><th>المعاملات</th><th>الإجراءات</th></tr></thead><tbody id="suppliersTable"></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="panel-reports" class="settings-panel">
+                        <div class="card">
+                            <h3><i class="fas fa-chart-bar"></i> <span>التقارير والجرد</span></h3>
+                            <div class="flex">
+                                <button class="btn btn-primary" onclick="generateReport()"><i class="fas fa-file-alt"></i> <span>تقرير الجرد</span></button>
+                                <button class="btn btn-primary" onclick="exportInventoryPDF()"><i class="fas fa-file-pdf"></i> <span>تصدير الجرد PDF</span></button>
+                                <button class="btn btn-primary" onclick="exportSuppliersReport()"><i class="fas fa-file-pdf"></i> <span>تقرير الموردين PDF</span></button>
+                            </div>
+                            <div id="reportResult" class="mt-16"></div>
+                        </div>
+                    </div>
+                    <div id="panel-logs" class="settings-panel">
+                        <div class="card">
+                            <h3><i class="fas fa-history"></i> <span>سجل النظام</span></h3>
+                            <div class="table-wrap">
+                                <table><thead><tr><th>الوقت</th><th>المستخدم</th><th>الإجراء</th></tr></thead><tbody id="logTable"></tbody></table>
+                            </div>
+                            <button class="btn btn-outline mt-16" onclick="exportLogPDF()"><i class="fas fa-file-pdf"></i> <span>تصدير السجل PDF</span></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Drawer Modal -->
+    <div id="drawerModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2><i class="fas fa-cash-register"></i> <span>الدرج النقدي</span></h2>
+            <div class="card"><strong><span>الرصيد الحالي</span>: </strong><span id="drawerBalance">0</span> ج.م</div>
+            <div class="grid-2">
+                <div><label class="label">المبلغ</label><input id="drawerAmount" class="input" type="number" placeholder="المبلغ"></div>
+                <div><label class="label">السبب</label><input id="drawerReason" class="input" placeholder="السبب"></div>
+            </div>
+            <div class="flex mt-16">
+                <button class="btn btn-success" onclick="drawerAction('withdraw')"><i class="fas fa-minus"></i> <span>سحب</span></button>
+                <button class="btn btn-primary" onclick="drawerAction('deposit')"><i class="fas fa-plus"></i> <span>إيداع</span></button>
+                <button class="btn btn-danger" onclick="closeDrawer()"><i class="fas fa-times"></i> <span>خروج</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div id="addProductModal" class="modal-overlay">
+        <div class="modal-content">
+            <h2><i class="fas fa-plus-circle"></i> <span>إضافة منتج</span></h2>
+            <div class="grid-2">
+                <div><label class="label">الاسم</label><input id="prodName" class="input" placeholder="اسم المنتج"></div>
+                <div><label class="label">العدد</label><input id="prodQty" class="input" type="number" placeholder="الكمية"></div>
+                <div><label class="label">سعر البيع</label><input id="prodSell" class="input" type="number" placeholder="سعر البيع"></div>
+                <div><label class="label">سعر الشراء</label><input id="prodBuy" class="input" type="number" placeholder="سعر الشراء"></div>
+                <div><label class="label">القسم</label>
+                    <select id="prodCategory" class="select">
+                        <option value="سوفت وير">سوفت وير</option>
+                        <option value="هارد وير">هارد وير</option>
+                        <option value="قطع غيار">قطع غيار</option>
+                    </select>
+                </div>
+                <div style="grid-column: span 2;">
+                    <label class="label">صورة المنتج</label>
+                    <div class="image-upload-container">
+                        <div class="image-preview" id="productImagePreview"><i class="fas fa-image" style="font-size:24px;color:var(--border);"></i></div>
+                        <div class="file-input-wrapper">
+                            <button class="btn btn-primary"><i class="fas fa-upload"></i> <span>رفع صورة</span></button>
+                            <input type="file" id="productImageInput" accept="image/*" onchange="handleProductImageUpload(event)">
+                        </div>
+                        <button class="btn btn-danger" onclick="clearProductImage()"><i class="fas fa-times"></i></button>
+                        <input type="hidden" id="prodImage" value="">
+                    </div>
+                </div>
+            </div>
+            <div class="flex mt-16">
+                <button class="btn btn-success" onclick="saveProduct()"><i class="fas fa-save"></i> <span>حفظ</span></button>
+                <button class="btn btn-danger" onclick="closeAddProduct()"><span>إلغاء</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Repair Modal - IMPROVED with Multiple Devices -->
+    <div id="addRepairModal" class="modal-overlay">
+        <div class="modal-content" style="max-width:950px;">
+            <h2><i class="fas fa-wrench"></i> <span id="addRepairTitle">صيانة جديدة</span></h2>
+            
+            <!-- Client Info -->
+            <div class="grid-2">
+                <div><label class="label">اسم العميل</label><input id="repClient" class="input" placeholder="الاسم" oninput="searchClientHistory()"></div>
+                <div><label class="label">رقم الموبايل</label><input id="repPhone" class="input" placeholder="رقم الموبايل" oninput="searchClientHistory()"></div>
+            </div>
+
+            <!-- Devices List -->
+            <div class="card">
+                <h4><i class="fas fa-devices"></i> الأجهزة <button class="btn btn-success btn-sm" onclick="addDeviceField()"><i class="fas fa-plus"></i> إضافة جهاز</button></h4>
+                <div id="devicesContainer" class="devices-list"></div>
+            </div>
+
+            <!-- Product Selection -->
+            <div class="card" id="productSelectionCard">
+                <h4><i class="fas fa-boxes"></i> اختيار قطع الغيار والمنتجات</h4>
+                <div class="category-tabs">
+                    <button class="category-tab active" onclick="filterProductsByCategory('all')">كل المنتجات</button>
+                    <button class="category-tab" onclick="filterProductsByCategory('سوفت وير')"><i class="fas fa-code"></i> سوفت وير</button>
+                    <button class="category-tab" onclick="filterProductsByCategory('هارد وير')"><i class="fas fa-microchip"></i> هارد وير</button>
+                    <button class="category-tab" onclick="filterProductsByCategory('قطع غيار')"><i class="fas fa-cogs"></i> قطع غيار</button>
+                </div>
+                <div id="repairProductSelect" class="product-select-grid"></div>
+                <div class="flex mt-16">
+                    <button class="btn btn-success btn-sm" onclick="addSelectedRepairProducts()"><i class="fas fa-plus"></i> إضافة المنتجات المختارة</button>
+                    <span class="text-muted" id="selectedProductsCount">0 منتج محدد</span>
+                </div>
+            </div>
+
+            <!-- Invoice Preview -->
+            <div class="card">
+                <h4><i class="fas fa-file-invoice"></i> فاتورة الصيانة</h4>
+                <div id="repairInvoiceItems" class="invoice-items">
+                    <div class="text-muted text-center">لا توجد منتجات مضافة</div>
+                </div>
+                <div class="invoice-total" id="repairInvoiceTotal">الإجمالي: 0 ج.م</div>
+                <div class="flex mt-16">
+                    <label class="label" style="margin:0;">مبلغ إضافي (يدوي)</label>
+                    <input id="repairManualAmount" class="input" type="number" placeholder="مبلغ إضافي" style="max-width:150px;" oninput="updateRepairInvoiceTotal()">
+                    <button class="btn btn-danger btn-sm" onclick="clearRepairInvoice()"><i class="fas fa-trash"></i> مسح الفاتورة</button>
+                </div>
+            </div>
+
+            <!-- Client History -->
+            <div id="clientHistoryContainer" class="card" style="display:none;">
+                <h4><i class="fas fa-history"></i> تاريخ العميل</h4>
+                <div id="clientHistoryList" class="client-history"></div>
+                <button class="btn btn-success mt-16" onclick="addRepairFromHistory()"><i class="fas fa-plus"></i> إضافة صيانة جديدة لهذا العميل</button>
+            </div>
+
+            <div class="flex mt-16">
+                <button class="btn btn-success" onclick="saveRepair()"><i class="fas fa-save"></i> <span>حفظ وتسليم</span></button>
+                <button class="btn btn-warning" onclick="saveRepairDraft()"><i class="fas fa-pen"></i> <span>حفظ كمسودة</span></button>
+                <button class="btn btn-danger" onclick="closeAddRepair()"><span>إلغاء</span></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Repair Modal -->
+    <div id="editRepairModal" class="modal-overlay">
+        <div class="modal-content" style="max-width:950px;">
+            <h2><i class="fas fa-edit"></i> <span>تعديل الصيانة</span></h2>
+            <div id="editRepairContent"></div>
+        </div>
+    </div>
+
+    <!-- Supplier Details Modal -->
+    <div id="supplierDetailsModal" class="modal-overlay">
+        <div class="modal-content wide">
+            <h2><i class="fas fa-truck"></i> تفاصيل المورد: <span id="supplierDetailName"></span></h2>
+            <div class="flex mb-16">
+                <button class="btn btn-success" onclick="supplierBuyFromDetail()"><i class="fas fa-shopping-cart"></i> شراء</button>
+                <button class="btn btn-warning" onclick="supplierSellFromDetail()"><i class="fas fa-hand-holding-usd"></i> بيع</button>
+                <button class="btn btn-primary" onclick="exportSupplierTransactions()"><i class="fas fa-file-pdf"></i> تصدير PDF</button>
+                <button class="btn btn-danger" onclick="closeSupplierDetails()"><i class="fas fa-times"></i> إغلاق</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th onclick="sortSupplierTransactions('date')">التاريخ <span class="sort-icon" id="sort-date"><i class="fas fa-sort"></i></span></th>
+                            <th onclick="sortSupplierTransactions('type')">النوع <span class="sort-icon" id="sort-type"><i class="fas fa-sort"></i></span></th>
+                            <th onclick="sortSupplierTransactions('product')">المنتج <span class="sort-icon" id="sort-product"><i class="fas fa-sort"></i></span></th>
+                            <th onclick="sortSupplierTransactions('qty')">الكمية <span class="sort-icon" id="sort-qty"><i class="fas fa-sort"></i></span></th>
+                            <th onclick="sortSupplierTransactions('amount')">المبلغ <span class="sort-icon" id="sort-amount"><i class="fas fa-sort"></i></span></th>
+                        </tr>
+                    </thead>
+                    <tbody id="supplierTransactionsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  DATA LAYER
+    // ============================================================
+    const DB = {
+        get(key, def) { try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; } },
+        set(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+    };
+
+    let state = {
+        products: DB.get('products', []),
+        repairs: DB.get('repairs', []),
+        employees: DB.get('employees', []),
+        suppliers: DB.get('suppliers', []),
+        supplierTransactions: DB.get('supplierTransactions', {}),
+        drawer: DB.get('drawer', 0),
+        logs: DB.get('logs', []),
+        permissions: DB.get('permissions', {}),
+        adminPass: DB.get('adminPass', ''),
+        currentUser: null,
+        currentSupplierId: null,
+        supplierSortField: 'date',
+        supplierSortAsc: true,
+        productView: 'grid',
+        productSales: DB.get('productSales', {}),
+        repairInvoice: [],
+        selectedCategory: 'all',
+        deviceCounter: 0,
+        editingRepairIndex: null,
+        editingDeviceIndex: null
+    };
+
+    // ============================================================
+    //  PERMISSIONS
+    // ============================================================
+    const ALL_PERMISSIONS = [
+        { id: 'view_products', label: 'عرض المنتجات' },
+        { id: 'add_products', label: 'إضافة منتج' },
+        { id: 'edit_products', label: 'تعديل منتج' },
+        { id: 'delete_products', label: 'حذف منتج' },
+        { id: 'sell_products', label: 'بيع منتج' },
+        { id: 'return_products', label: 'مرتجع منتج' },
+        { id: 'view_repairs', label: 'عرض الصيانة' },
+        { id: 'add_repairs', label: 'إضافة صيانة' },
+        { id: 'edit_repairs', label: 'تعديل صيانة' },
+        { id: 'delete_repairs', label: 'حذف صيانة' },
+        { id: 'complete_repairs', label: 'إنهاء صيانة' },
+        { id: 'view_drawer', label: 'عرض الدرج' },
+        { id: 'manage_drawer', label: 'إدارة الدرج' },
+        { id: 'view_employees', label: 'عرض الموظفين' },
+        { id: 'manage_employees', label: 'إدارة الموظفين' },
+        { id: 'view_suppliers', label: 'عرض الموردين' },
+        { id: 'manage_suppliers', label: 'إدارة الموردين' },
+        { id: 'view_logs', label: 'عرض السجل' },
+        { id: 'view_reports', label: 'عرض التقارير' },
+        { id: 'export_reports', label: 'تصدير التقارير' },
+        { id: 'manage_settings', label: 'إدارة الإعدادات' },
+        { id: 'view_buy_price', label: 'عرض سعر الشراء' }
+    ];
+
+    // ============================================================
+    //  LANGUAGE SYSTEM
+    // ============================================================
+    const translations = {
+        ar: {
+            appTitle: 'كاشير الصيانة',
+            drawerBtn: 'الدرج',
+            productsBtn: 'المنتجات',
+            repairsBtn: 'الصيانة',
+            settingsBtn: 'الإعدادات',
+            logoutBtn: 'خروج',
+            loginTitle: 'تسجيل الدخول',
+            usernameLabel: 'اسم المستخدم',
+            passwordLabel: 'كلمة المرور',
+            loginBtn: 'دخول',
+            productsTitle: 'إدارة المنتجات',
+            addProductBtn: 'إضافة منتج',
+            repairsTitle: 'إدارة الصيانة',
+            addRepairBtn: 'صيانة جديدة',
+            settingsTitle: 'الإعدادات المتقدمة',
+            imageCol: 'الصورة',
+            nameCol: 'الاسم',
+            qtyCol: 'العدد',
+            sellCol: 'سعر البيع',
+            buyCol: 'سعر الشراء',
+            actionsCol: 'الإجراءات',
+            clientCol: 'العميل',
+            phoneCol: 'الموبايل',
+            deviceCol: 'الأجهزة',
+            statusCol: 'الحالة',
+            amountCol: 'المبلغ',
+            dateCol: 'التاريخ',
+        },
+        en: {
+            appTitle: 'Repair Cashier',
+            drawerBtn: 'Drawer',
+            productsBtn: 'Products',
+            repairsBtn: 'Repairs',
+            settingsBtn: 'Settings',
+            logoutBtn: 'Logout',
+            loginTitle: 'Login',
+            usernameLabel: 'Username',
+            passwordLabel: 'Password',
+            loginBtn: 'Login',
+            productsTitle: 'Product Management',
+            addProductBtn: 'Add Product',
+            repairsTitle: 'Repair Management',
+            addRepairBtn: 'New Repair',
+            settingsTitle: 'Advanced Settings',
+            imageCol: 'Image',
+            nameCol: 'Name',
+            qtyCol: 'Qty',
+            sellCol: 'Sell Price',
+            buyCol: 'Buy Price',
+            actionsCol: 'Actions',
+            clientCol: 'Client',
+            phoneCol: 'Phone',
+            deviceCol: 'Devices',
+            statusCol: 'Status',
+            amountCol: 'Amount',
+            dateCol: 'Date',
+        }
+    };
+
+    let currentLang = 'ar';
+
+    function setLanguage(lang) {
+        currentLang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        document.documentElement.lang = lang;
+        document.getElementById('langAr').classList.toggle('active', lang === 'ar');
+        document.getElementById('langEn').classList.toggle('active', lang === 'en');
+        const t = translations[lang];
+        document.querySelectorAll('[id]').forEach(el => {
+            if (t[el.id]) el.textContent = t[el.id];
+        });
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    async function initSystem() {
+        if (!state.adminPass) {
+            const defaultHash = await hashPassword('admin123');
+            state.adminPass = defaultHash;
+            DB.set('adminPass', state.adminPass);
+        }
+        if (state.products.length === 0) {
+            state.products = [
+                { id: 1, name: 'سوكت PS4', qty: 20, sell: 50, buy: 25, image: '', category: 'قطع غيار', sales: 0 },
+                { id: 2, name: 'بطارية PS4', qty: 10, sell: 150, buy: 80, image: '', category: 'قطع غيار', sales: 0 },
+                { id: 3, name: 'جلد دراع', qty: 15, sell: 30, buy: 12, image: '', category: 'قطع غيار', sales: 0 },
+                { id: 4, name: 'ويندوز 10', qty: 5, sell: 200, buy: 0, image: '', category: 'سوفت وير', sales: 0 },
+                { id: 5, name: 'رام 8GB', qty: 8, sell: 250, buy: 180, image: '', category: 'هارد وير', sales: 0 },
+                { id: 6, name: 'SSD 256GB', qty: 6, sell: 350, buy: 250, image: '', category: 'هارد وير', sales: 0 }
+            ];
+            DB.set('products', state.products);
+        }
+        if (state.employees.length === 0) {
+            const empPass = await hashPassword('123');
+            state.employees = [{ name: 'موظف تجريبي', user: 'emp', pass: empPass }];
+            DB.set('employees', state.employees);
+        }
+        if (!state.supplierTransactions) {
+            state.supplierTransactions = {};
+            DB.set('supplierTransactions', state.supplierTransactions);
+        }
+        if (!state.productSales) {
+            state.productSales = {};
+            DB.set('productSales', state.productSales);
+        }
+        renderAll();
+        setTimeout(initSortable, 100);
+    }
+
+    async function hashPassword(pw) {
+        const enc = new TextEncoder().encode(pw);
+        const buf = await crypto.subtle.digest('SHA-256', enc);
+        return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+
+    function hasPermission(perm) {
+        if (!state.currentUser) return false;
+        if (state.currentUser.isAdmin) return true;
+        return state.currentUser.permissions[perm] === true;
+    }
+
+    // ============================================================
+    //  LOGIN
+    // ============================================================
+    async function login() {
+        const user = document.getElementById('loginUser').value.trim();
+        const pass = document.getElementById('loginPass').value.trim();
+        if (!user || !pass) return Swal.fire('خطأ', 'أدخل اسم المستخدم وكلمة المرور', 'error');
+        const hashed = await hashPassword(pass);
+        if (user === 'admin') {
+            if (hashed === state.adminPass) {
+                state.currentUser = { name: 'Admin', user: 'admin', isAdmin: true, permissions: {} };
+                enterApp();
+                return;
+            } else return Swal.fire('خطأ', 'كلمة مرور الأدمن غير صحيحة', 'error');
+        }
+        const emp = state.employees.find(e => e.user === user);
+        if (emp) {
+            if (emp.pass === hashed) {
+                state.currentUser = { name: emp.name, user: emp.user, isAdmin: false, permissions: state.permissions[emp.user] || {} };
+                enterApp();
+                return;
+            } else return Swal.fire('خطأ', 'كلمة المرور غير صحيحة', 'error');
+        }
+        Swal.fire('خطأ', 'المستخدم غير موجود', 'error');
+    }
+
+    function enterApp() {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainHeader').style.display = 'flex';
+        document.getElementById('mainContent').style.display = 'block';
+        document.getElementById('userDisplay').innerHTML = `<i class="fas fa-user"></i> ${state.currentUser.name}`;
+        applyPermissions();
+        renderAll();
+        logAction('تسجيل دخول');
+        setLanguage(currentLang);
+    }
+
+    function logout() {
+        state.currentUser = null;
+        document.getElementById('loginScreen').style.display = 'block';
+        document.getElementById('mainHeader').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'none';
+    }
+
+    // ============================================================
+    //  PERMISSIONS
+    // ============================================================
+    function applyPermissions() {
+        document.querySelectorAll('.header-btn').forEach(el => {
+            const perm = el.getAttribute('data-perm');
+            if (perm) el.style.display = hasPermission(perm) ? 'inline-flex' : 'none';
+        });
+        const sections = [
+            { id: 'section-products', perm: 'view_products' },
+            { id: 'section-repairs', perm: 'view_repairs' },
+            { id: 'section-settings', perm: 'manage_settings' }
+        ];
+        sections.forEach(s => {
+            const el = document.getElementById(s.id);
+            if (el) el.style.display = hasPermission(s.perm) ? 'block' : 'none';
+        });
+        document.querySelectorAll('[data-perm]').forEach(el => {
+            const perm = el.getAttribute('data-perm');
+            if (perm) el.style.display = hasPermission(perm) ? '' : 'none';
+        });
+        document.querySelectorAll('.buy-price-col').forEach(el => {
+            el.style.display = hasPermission('view_buy_price') ? '' : 'none';
+        });
+    }
+
+    function renderPermissionsUI() {
+        const container = document.getElementById('permissionsContainer');
+        const select = document.getElementById('permEmployeeSelect');
+        select.innerHTML = '<option value="">-- اختر موظف --</option>';
+        state.employees.forEach(e => {
+            if (e.user !== 'admin') {
+                select.innerHTML += `<option value="${e.user}">${e.name} (${e.user})</option>`;
+            }
+        });
+        loadEmployeePermissions();
+    }
+
+    function loadEmployeePermissions() {
+        const user = document.getElementById('permEmployeeSelect').value;
+        const container = document.getElementById('permissionsContainer');
+        if (!user) { container.innerHTML = '<p class="text-muted">اختر موظف لعرض صلاحياته</p>'; return; }
+        const perms = state.permissions[user] || {};
+        container.innerHTML = '';
+        ALL_PERMISSIONS.forEach(p => {
+            const div = document.createElement('div');
+            div.className = 'perm-item';
+            div.innerHTML = `
+                <input type="checkbox" id="perm_${p.id}" ${perms[p.id] ? 'checked' : ''}>
+                <label for="perm_${p.id}">${p.label}</label>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function savePermissions() {
+        const user = document.getElementById('permEmployeeSelect').value;
+        if (!user) return Swal.fire('خطأ', 'اختر موظف أولاً', 'error');
+        const perms = {};
+        document.querySelectorAll('#permissionsContainer input[type="checkbox"]').forEach(cb => {
+            perms[cb.id.replace('perm_', '')] = cb.checked;
+        });
+        state.permissions[user] = perms;
+        DB.set('permissions', state.permissions);
+        Swal.fire('تم', 'تم حفظ الصلاحيات', 'success');
+        logAction(`تحديث صلاحيات ${user}`);
+        renderEmployees();
+        applyPermissions();
+    }
+
+    // ============================================================
+    //  EMPLOYEES
+    // ============================================================
+    async function addEmployee() {
+        const name = document.getElementById('empName').value.trim();
+        const user = document.getElementById('empUser').value.trim();
+        const pass = document.getElementById('empPass').value.trim();
+        if (!name || !user || !pass) return Swal.fire('خطأ', 'املأ جميع الحقول', 'error');
+        if (state.employees.some(e => e.user.toLowerCase() === user.toLowerCase())) {
+            return Swal.fire('خطأ', 'اسم المستخدم موجود مسبقاً!', 'error');
+        }
+        const hashed = await hashPassword(pass);
+        state.employees.push({ name, user, pass: hashed });
+        DB.set('employees', state.employees);
+        renderEmployees();
+        renderPermissionsUI();
+        document.getElementById('empName').value = '';
+        document.getElementById('empUser').value = '';
+        document.getElementById('empPass').value = '';
+        Swal.fire('تم', 'تم إضافة الموظف', 'success');
+        logAction(`إضافة موظف ${name}`);
+    }
+
+    function renderEmployees() {
+        const tbody = document.getElementById('employeesTable');
+        if (state.employees.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center">لا يوجد موظفين</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = state.employees.map((e, i) => {
+            const perms = state.permissions[e.user] || {};
+            const permCount = Object.values(perms).filter(v => v).length;
+            return `
+            <tr>
+                <td>${e.name}</td>
+                <td>${e.user}</td>
+                <td>${permCount} صلاحية${permCount > 1 ? 'ات' : ''}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteEmployee(${i})"><i class="fas fa-trash"></i></button></td>
+            </tr>
+        `}).join('');
+    }
+
+    function deleteEmployee(i) {
+        const emp = state.employees[i];
+        Swal.fire({ title: 'تأكيد الحذف', text: `حذف ${emp.name}؟`, icon: 'warning', showCancelButton: true }).then(r => {
+            if (r.isConfirmed) {
+                state.employees.splice(i, 1);
+                DB.set('employees', state.employees);
+                renderEmployees();
+                renderPermissionsUI();
+                logAction(`حذف موظف ${emp.name}`);
+                Swal.fire('تم', 'تم الحذف', 'success');
+            }
+        });
+    }
+
+    // ============================================================
+    //  CHANGE ADMIN PASS
+    // ============================================================
+    async function changeAdminPass() {
+        const newPass = document.getElementById('newAdminPass').value.trim();
+        if (!newPass) return Swal.fire('خطأ', 'أدخل كلمة مرور جديدة', 'error');
+        state.adminPass = await hashPassword(newPass);
+        DB.set('adminPass', state.adminPass);
+        Swal.fire('تم', 'تم تغيير باسورد الأدمن', 'success');
+        logAction('تغيير باسورد الأدمن');
+        document.getElementById('newAdminPass').value = '';
+    }
+
+    // ============================================================
+    //  PRODUCTS
+    // ============================================================
+    let productImageData = '';
+
+    function handleProductImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            productImageData = e.target.result;
+            document.getElementById('prodImage').value = productImageData;
+            document.getElementById('productImagePreview').innerHTML = `<img src="${productImageData}" alt="Product Image">`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearProductImage() {
+        productImageData = '';
+        document.getElementById('prodImage').value = '';
+        document.getElementById('productImagePreview').innerHTML = `<i class="fas fa-image" style="font-size:24px;color:var(--border);"></i>`;
+        document.getElementById('productImageInput').value = '';
+    }
+
+    function openAddProduct() {
+        if (!hasPermission('add_products')) return Swal.fire('خطأ', 'ليس لديك صلاحية لإضافة منتجات', 'error');
+        document.getElementById('addProductModal').classList.add('active');
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodQty').value = '';
+        document.getElementById('prodSell').value = '';
+        document.getElementById('prodBuy').value = '';
+        document.getElementById('prodCategory').value = 'سوفت وير';
+        clearProductImage();
+        window._editProductIndex = null;
+    }
+
+    function closeAddProduct() { document.getElementById('addProductModal').classList.remove('active'); }
+
+    function saveProduct() {
+        const name = document.getElementById('prodName').value.trim();
+        const qty = parseInt(document.getElementById('prodQty').value) || 0;
+        const sell = parseFloat(document.getElementById('prodSell').value) || 0;
+        const buy = parseFloat(document.getElementById('prodBuy').value) || 0;
+        const category = document.getElementById('prodCategory').value;
+        const image = document.getElementById('prodImage').value || '';
+        if (!name) return Swal.fire('خطأ', 'أدخل اسم المنتج', 'error');
+        if (window._editProductIndex !== null && window._editProductIndex !== undefined) {
+            const idx = window._editProductIndex;
+            state.products[idx].name = name;
+            state.products[idx].qty = qty;
+            state.products[idx].sell = sell;
+            state.products[idx].buy = buy;
+            state.products[idx].category = category;
+            if (image) state.products[idx].image = image;
+            DB.set('products', state.products);
+            logAction(`تعديل منتج ${name}`);
+            Swal.fire('تم', 'تم تعديل المنتج', 'success');
+        } else {
+            state.products.push({ id: Date.now(), name, qty, sell, buy, image, category, sales: 0 });
+            DB.set('products', state.products);
+            logAction(`إضافة منتج ${name}`);
+            Swal.fire('تم', 'تم إضافة المنتج', 'success');
+        }
+        closeAddProduct();
+        renderProducts();
+        window._editProductIndex = null;
+        setTimeout(initSortable, 100);
+    }
+
+    function setView(view) {
+        state.productView = view;
+        document.querySelectorAll('.view-options button').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.view-options button[onclick*="${view}"]`)?.classList.add('active');
+        document.getElementById('productsGridView').style.display = view === 'grid' ? 'grid' : 'none';
+        document.getElementById('productsGridView').classList.toggle('active', view === 'grid');
+        document.getElementById('productsListView').style.display = view === 'list' ? 'block' : 'none';
+        document.getElementById('productsListView').classList.toggle('active', view === 'list');
+        if (view === 'grid') setTimeout(initSortable, 100);
+    }
+
+    function initSortable() {
+        const grid = document.getElementById('productsGrid');
+        if (grid && !grid._sortable) {
+            grid._sortable = new Sortable(grid, {
+                handle: '.drag-handle',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                onEnd: function(evt) {
+                    const item = state.products.splice(evt.oldIndex, 1)[0];
+                    state.products.splice(evt.newIndex, 0, item);
+                    DB.set('products', state.products);
+                    logAction('ترتيب المنتجات يدوياً');
+                }
+            });
+        }
+    }
+
+    function renderProducts() {
+        const search = document.getElementById('productSearch').value.toLowerCase();
+        const sortBy = document.getElementById('productSort').value;
+        let list = state.products.filter(p => p.name.toLowerCase().includes(search) || p.sell.toString().includes(search));
+        if (sortBy === 'name') list.sort((a, b) => a.name.localeCompare(b.name));
+        else if (sortBy === 'price') list.sort((a, b) => a.sell - b.sell);
+        else if (sortBy === 'qty') list.sort((a, b) => a.qty - b.qty);
+        else if (sortBy === 'mostSold') list.sort((a, b) => (b.sales || 0) - (a.sales || 0));
+
+        document.getElementById('productCount').textContent = `${list.length} منتج`;
+
+        const grid = document.getElementById('productsGrid');
+        const showBuyPrice = hasPermission('view_buy_price');
+        const canSell = hasPermission('sell_products');
+        const canReturn = hasPermission('return_products');
+        const canEdit = hasPermission('edit_products');
+        const canDelete = hasPermission('delete_products');
+
+        if (list.length === 0) {
+            grid.innerHTML = `<div class="text-center" style="grid-column:1/-1;padding:40px;">لا توجد منتجات</div>`;
+        } else {
+            grid.innerHTML = list.map((p, i) => {
+                const realIndex = state.products.indexOf(p);
+                const isLowStock = p.qty <= 3 && p.qty > 0;
+                const isOutOfStock = p.qty === 0;
+                let badge = '';
+                if (isOutOfStock) badge = '<span class="badge badge-danger" style="position:absolute;top:8px;right:8px;">نفد</span>';
+                else if (isLowStock) badge = '<span class="badge badge-warning" style="position:absolute;top:8px;right:8px;">متبقي قليل</span>';
+                if (p.sales > 5) badge += '<span class="badge badge-success" style="position:absolute;top:40px;right:8px;">الأكثر مبيعاً</span>';
+                const catClass = p.category === 'سوفت وير' ? 'badge-soft' : p.category === 'هارد وير' ? 'badge-hard' : 'badge-parts';
+                return `
+                <div class="product-card ${isLowStock ? 'low-stock' : ''} ${isOutOfStock ? 'out-of-stock' : ''}" data-id="${p.id}">
+                    <div class="drag-handle"><i class="fas fa-grip-vertical"></i></div>
+                    ${badge}
+                    ${p.image ? `<img src="${p.image}" class="product-image" alt="${p.name}">` : 
+                        `<div class="product-image-placeholder"><i class="fas fa-image"></i></div>`}
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-price">${p.sell} ج.م</div>
+                    <div class="product-qty">المتبقي: ${p.qty} | مبيعات: ${p.sales || 0}</div>
+                    <div class="product-qty"><span class="badge ${catClass}">${p.category || 'غير مصنف'}</span></div>
+                    ${showBuyPrice ? `<div class="product-qty" style="color:var(--text-muted);">سعر الشراء: ${p.buy} ج.م</div>` : ''}
+                    <div class="product-actions">
+                        ${canSell ? `<button class="btn btn-success btn-xs" onclick="sellProduct(${realIndex})" title="بيع"><i class="fas fa-shopping-cart"></i></button>` : ''}
+                        ${canReturn ? `<button class="btn btn-warning btn-xs" onclick="returnProduct(${realIndex})" title="مرتجع"><i class="fas fa-undo"></i></button>` : ''}
+                        ${canEdit ? `<button class="btn btn-primary btn-xs" onclick="editProduct(${realIndex})" title="تعديل"><i class="fas fa-edit"></i></button>` : ''}
+                        ${canDelete ? `<button class="btn btn-danger btn-xs" onclick="deleteProduct(${realIndex})" title="حذف"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
+                </div>
+            `}).join('');
+        }
+        setTimeout(initSortable, 100);
+
+        const tbody = document.getElementById('productsTable');
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">لا توجد منتجات</td></tr>`;
+        } else {
+            tbody.innerHTML = list.map((p, i) => {
+                const realIndex = state.products.indexOf(p);
+                return `
+                <tr>
+                    <td>${i+1}</td>
+                    <td>${p.image ? `<img src="${p.image}" width="40" height="40" style="border-radius:8px;object-fit:cover;">` : '<i class="fas fa-image" style="font-size:24px;color:var(--border);"></i>'}</td>
+                    <td>${p.name}</td>
+                    <td>${p.qty}</td>
+                    <td>${p.sell} ج.م</td>
+                    <td class="buy-price-col">${showBuyPrice ? p.buy + ' ج.م' : '---'}</td>
+                    <td>
+                        ${canSell ? `<button class="btn btn-success btn-xs" onclick="sellProduct(${realIndex})"><i class="fas fa-shopping-cart"></i></button>` : ''}
+                        ${canReturn ? `<button class="btn btn-warning btn-xs" onclick="returnProduct(${realIndex})"><i class="fas fa-undo"></i></button>` : ''}
+                        ${canEdit ? `<button class="btn btn-primary btn-xs" onclick="editProduct(${realIndex})"><i class="fas fa-edit"></i></button>` : ''}
+                        ${canDelete ? `<button class="btn btn-danger btn-xs" onclick="deleteProduct(${realIndex})"><i class="fas fa-trash"></i></button>` : ''}
+                    </td>
+                </tr>
+            `}).join('');
+        }
+    }
+
+    // ============================================================
+    //  SELL & RETURN PRODUCTS
+    // ============================================================
+    function sellProduct(index) {
+        if (!hasPermission('sell_products')) return Swal.fire('خطأ', 'ليس لديك صلاحية لبيع المنتجات', 'error');
+        const p = state.products[index];
+        if (p.qty <= 0) return Swal.fire('خطأ', 'المنتج غير متوفر في المخزن', 'error');
+        Swal.fire({
+            title: `بيع ${p.name}`,
+            text: `سعر البيع: ${p.sell} ج.م | المتوفر: ${p.qty}`,
+            input: 'number',
+            inputLabel: 'الكمية المطلوبة',
+            inputValue: 1,
+            inputAttributes: { min: 1, max: p.qty },
+            showCancelButton: true,
+            confirmButtonText: 'تأكيد البيع',
+            cancelButtonText: 'إلغاء'
+        }).then(res => {
+            if (res.isConfirmed) {
+                const qty = parseInt(res.value) || 1;
+                if (qty > p.qty) return Swal.fire('خطأ', 'الكمية المطلوبة أكبر من المتوفر', 'error');
+                p.qty -= qty;
+                p.sales = (p.sales || 0) + qty;
+                const total = qty * p.sell;
+                state.drawer += total;
+                DB.set('products', state.products);
+                DB.set('drawer', state.drawer);
+                renderProducts();
+                logAction(`بيع ${qty} من ${p.name} - ${total} ج.م`);
+                Swal.fire('تم', `تم بيع ${qty} من ${p.name} بمبلغ ${total} ج.م`, 'success');
+            }
+        });
+    }
+
+    function returnProduct(index) {
+        if (!hasPermission('return_products')) return Swal.fire('خطأ', 'ليس لديك صلاحية للمرتجعات', 'error');
+        const p = state.products[index];
+        Swal.fire({
+            title: `مرتجع ${p.name}`,
+            text: `سعر البيع: ${p.sell} ج.م`,
+            input: 'number',
+            inputLabel: 'الكمية المرتجعة',
+            inputValue: 1,
+            inputAttributes: { min: 1 },
+            showCancelButton: true,
+            confirmButtonText: 'تأكيد المرتجع',
+            cancelButtonText: 'إلغاء'
+        }).then(res => {
+            if (res.isConfirmed) {
+                const qty = parseInt(res.value) || 1;
+                const total = qty * p.sell;
+                if (state.drawer < total) return Swal.fire('خطأ', 'الرصيد في الدرج غير كاف للمرتجع', 'error');
+                p.qty += qty;
+                p.sales = Math.max(0, (p.sales || 0) - qty);
+                state.drawer -= total;
+                DB.set('products', state.products);
+                DB.set('drawer', state.drawer);
+                renderProducts();
+                logAction(`مرتجع ${qty} من ${p.name} - ${total} ج.م`);
+                Swal.fire('تم', `تم إرجاع ${qty} من ${p.name} وخصم ${total} ج.م من الدرج`, 'success');
+            }
+        });
+    }
+
+    function deleteProduct(index) {
+        if (!hasPermission('delete_products')) return Swal.fire('خطأ', 'ليس لديك صلاحية لحذف المنتجات', 'error');
+        const p = state.products[index];
+        Swal.fire({ title: 'تأكيد الحذف', text: `حذف ${p.name}؟`, icon: 'warning', showCancelButton: true }).then(r => {
+            if (r.isConfirmed) {
+                state.products.splice(index, 1);
+                DB.set('products', state.products);
+                renderProducts();
+                logAction(`حذف منتج ${p.name}`);
+                Swal.fire('تم', 'تم الحذف', 'success');
+            }
+        });
+    }
+
+    function editProduct(index) {
+        if (!hasPermission('edit_products')) return Swal.fire('خطأ', 'ليس لديك صلاحية لتعديل المنتجات', 'error');
+        const p = state.products[index];
+        document.getElementById('prodName').value = p.name;
+        document.getElementById('prodQty').value = p.qty;
+        document.getElementById('prodSell').value = p.sell;
+        document.getElementById('prodBuy').value = p.buy;
+        document.getElementById('prodCategory').value = p.category || 'سوفت وير';
+        if (p.image) {
+            productImageData = p.image;
+            document.getElementById('prodImage').value = p.image;
+            document.getElementById('productImagePreview').innerHTML = `<img src="${p.image}" alt="Product Image">`;
+        } else clearProductImage();
+        window._editProductIndex = index;
+        document.getElementById('addProductModal').classList.add('active');
+    }
+
+    // ============================================================
+    //  REPAIRS - MULTIPLE DEVICES SUPPORT
+    // ============================================================
+    let selectedClientForRepair = null;
+    let repairInvoiceItems = [];
+    let repairDevices = [];
+    let deviceIdCounter = 0;
+
+    function addDeviceField(deviceData) {
+        const container = document.getElementById('devicesContainer');
+        const id = deviceIdCounter++;
+        
+        const div = document.createElement('div');
+        div.className = 'device-item';
+        div.id = `device-${id}`;
+        
+        const statuses = ['قيد الصيانة', 'تم الصيانة', 'منتظر قطعة'];
+        const statusOptions = statuses.map(s => 
+            `<option value="${s}" ${deviceData?.status === s ? 'selected' : ''}>${s}</option>`
+        ).join('');
+        
+        div.innerHTML = `
+            <div>
+                <label class="label" style="font-size:0.8rem;">الجهاز</label>
+                <input class="input device-name" style="font-size:0.9rem;" placeholder="مثال: PS4, Laptop..." value="${deviceData?.name || ''}">
+            </div>
+            <div>
+                <label class="label" style="font-size:0.8rem;">المشكلة</label>
+                <input class="input device-issue" style="font-size:0.9rem;" placeholder="مشكلة الجهاز..." value="${deviceData?.issue || ''}">
+            </div>
+            <div>
+                <label class="label" style="font-size:0.8rem;">الحالة</label>
+                <select class="select device-status" style="font-size:0.9rem;padding:6px 10px;">${statusOptions}</select>
+            </div>
+            <div>
+                <label class="label" style="font-size:0.8rem;">المبلغ</label>
+                <input class="input device-amount" type="number" style="font-size:0.9rem;padding:6px 10px;" placeholder="0" value="${deviceData?.amount || 0}">
+            </div>
+            <div class="device-actions">
+                <button class="btn btn-danger btn-xs" onclick="removeDevice(${id})"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="grid-column:1/-1;font-size:0.8rem;color:var(--text-muted);">
+                <span class="device-details">${deviceData?.details || ''}</span>
+                <input class="input device-details-input" style="font-size:0.8rem;padding:4px 8px;margin-top:4px;" placeholder="تفاصيل إضافية..." value="${deviceData?.details || ''}">
+            </div>
+        `;
+        container.appendChild(div);
+        updateDeviceCount();
+    }
+
+    function removeDevice(id) {
+        const el = document.getElementById(`device-${id}`);
+        if (el) el.remove();
+        updateDeviceCount();
+    }
+
+    function updateDeviceCount() {
+        const count = document.querySelectorAll('#devicesContainer .device-item').length;
+        if (count === 0) {
+            document.getElementById('devicesContainer').innerHTML = '<div class="text-muted text-center">لا توجد أجهزة، اضغط إضافة جهاز</div>';
+        }
+    }
+
+    function getDevicesData() {
+        const items = document.querySelectorAll('#devicesContainer .device-item');
+        const devices = [];
+        items.forEach(el => {
+            const name = el.querySelector('.device-name')?.value || '';
+            const issue = el.querySelector('.device-issue')?.value || '';
+            const status = el.querySelector('.device-status')?.value || 'قيد الصيانة';
+            const amount = parseFloat(el.querySelector('.device-amount')?.value) || 0;
+            const details = el.querySelector('.device-details-input')?.value || '';
+            if (name) {
+                devices.push({ name, issue, status, amount, details });
+            }
+        });
+        return devices;
+    }
+
+    function filterProductsByCategory(category) {
+        state.selectedCategory = category;
+        document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.category-tab[onclick*="${category}"]`)?.classList.add('active');
+        renderRepairProductSelect();
+    }
+
+    function renderRepairProductSelect() {
+        const container = document.getElementById('repairProductSelect');
+        const category = state.selectedCategory;
+        let list = state.products;
+        if (category !== 'all') {
+            list = list.filter(p => p.category === category);
+        }
+        if (list.length === 0) {
+            container.innerHTML = '<div class="text-muted text-center">لا توجد منتجات في هذا القسم</div>';
+            return;
+        }
+        container.innerHTML = list.map(p => `
+            <div class="product-select-item" data-id="${p.id}">
+                <input type="checkbox" value="${p.id}" onchange="updateSelectedCount()">
+                <span>${p.name}</span>
+                <span class="qty-badge">${p.qty}</span>
+                <span style="font-size:0.7rem;color:var(--text-muted);">${p.sell} ج.م</span>
+            </div>
+        `).join('');
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const checked = document.querySelectorAll('#repairProductSelect input[type="checkbox"]:checked').length;
+        document.getElementById('selectedProductsCount').textContent = `${checked} منتج محدد`;
+    }
+
+    function addSelectedRepairProducts() {
+        const selected = document.querySelectorAll('#repairProductSelect input[type="checkbox"]:checked');
+        if (selected.length === 0) return Swal.fire('تنبيه', 'لم تختار أي منتج', 'warning');
+        
+        selected.forEach(cb => {
+            const id = parseInt(cb.value);
+            const prod = state.products.find(p => p.id === id);
+            if (prod && prod.qty > 0) {
+                const existing = repairInvoiceItems.find(item => item.id === id);
+                if (existing) {
+                    existing.qty += 1;
+                } else {
+                    repairInvoiceItems.push({ ...prod, qty: 1 });
+                }
+                cb.checked = false;
+            } else {
+                Swal.fire('تنبيه', `المنتج ${prod?.name} غير متوفر`, 'warning');
+            }
+        });
+        updateRepairInvoice();
+        updateSelectedCount();
+        renderRepairProductSelect();
+    }
+
+    function updateRepairInvoice() {
+        const container = document.getElementById('repairInvoiceItems');
+        if (repairInvoiceItems.length === 0) {
+            container.innerHTML = '<div class="text-muted text-center">لا توجد منتجات مضافة</div>';
+            document.getElementById('repairInvoiceTotal').textContent = 'الإجمالي: 0 ج.م';
+            return;
+        }
+        container.innerHTML = repairInvoiceItems.map((item, i) => `
+            <div class="invoice-item">
+                <span>${item.name} (${item.category || 'غير مصنف'})</span>
+                <span>
+                    ${item.qty} × ${item.sell} = ${item.qty * item.sell} ج.م
+                    <button class="btn btn-danger btn-xs" onclick="removeRepairInvoiceItem(${i})"><i class="fas fa-times"></i></button>
+                </span>
+            </div>
+        `).join('');
+        updateRepairInvoiceTotal();
+    }
+
+    function updateRepairInvoiceTotal() {
+        const manualAmount = parseFloat(document.getElementById('repairManualAmount').value) || 0;
+        const productsTotal = repairInvoiceItems.reduce((sum, item) => sum + (item.qty * item.sell), 0);
+        const devicesTotal = getDevicesData().reduce((sum, d) => sum + (d.amount || 0), 0);
+        const total = productsTotal + manualAmount + devicesTotal;
+        document.getElementById('repairInvoiceTotal').textContent = `الإجمالي: ${total} ج.م`;
+        return total;
+    }
+
+    function removeRepairInvoiceItem(index) {
+        repairInvoiceItems.splice(index, 1);
+        updateRepairInvoice();
+    }
+
+    function clearRepairInvoice() {
+        repairInvoiceItems = [];
+        document.getElementById('repairManualAmount').value = '';
+        updateRepairInvoice();
+        renderRepairProductSelect();
+    }
+
+    function searchClientHistory() {
+        const client = document.getElementById('repClient').value.trim();
+        const phone = document.getElementById('repPhone').value.trim();
+        const container = document.getElementById('clientHistoryContainer');
+        const list = document.getElementById('clientHistoryList');
+        if (!client && !phone) { container.style.display = 'none'; return; }
+        const history = state.repairs.filter(r => 
+            r.client.toLowerCase().includes(client.toLowerCase()) || 
+            r.phone.includes(phone)
+        );
+        if (history.length === 0) { container.style.display = 'none'; return; }
+        container.style.display = 'block';
+        list.innerHTML = history.map(r => `
+            <div class="client-history-item">
+                <strong>${r.date || 'تاريخ غير معروف'}</strong> - 
+                <span class="badge ${r.status === 'تم الصيانة' ? 'badge-success' : r.status === 'منتظر قطعة' ? 'badge-warning' : 'badge-info'}">${r.status}</span>
+                <br>الأجهزة: ${r.devices?.map(d => d.name).join(', ') || 'غير محدد'}
+                <br>المبلغ: ${r.amount} ج.م
+            </div>
+        `).join('');
+        selectedClientForRepair = history[0];
+    }
+
+    function addRepairFromHistory() {
+        if (selectedClientForRepair) {
+            document.getElementById('repClient').value = selectedClientForRepair.client;
+            document.getElementById('repPhone').value = selectedClientForRepair.phone;
+            Swal.fire('تم', 'تم تعبئة بيانات العميل', 'success');
+        }
+    }
+
+    function openAddRepair() {
+        if (!hasPermission('add_repairs')) return Swal.fire('خطأ', 'ليس لديك صلاحية لإضافة صيانة', 'error');
+        document.getElementById('addRepairModal').classList.add('active');
+        document.getElementById('repClient').value = '';
+        document.getElementById('repPhone').value = '';
+        document.getElementById('repManualAmount').value = '';
+        document.getElementById('clientHistoryContainer').style.display = 'none';
+        document.getElementById('devicesContainer').innerHTML = '<div class="text-muted text-center">لا توجد أجهزة، اضغط إضافة جهاز</div>';
+        repairInvoiceItems = [];
+        repairDevices = [];
+        deviceIdCounter = 0;
+        state.selectedCategory = 'all';
+        window._editRepairIndex = null;
+        renderProducts();
+        renderRepairProductSelect();
+        updateRepairInvoice();
+        // Add first device by default
+        addDeviceField();
+    }
+
+    function closeAddRepair() { 
+        document.getElementById('addRepairModal').classList.remove('active');
+        document.getElementById('editRepairModal').classList.remove('active');
+        repairInvoiceItems = [];
+    }
+
+    function saveRepairDraft() {
+        const client = document.getElementById('repClient').value.trim();
+        const phone = document.getElementById('repPhone').value.trim();
+        if (!client || !phone) return Swal.fire('خطأ', 'أدخل اسم العميل والموبايل', 'error');
+        
+        const devices = getDevicesData();
+        if (devices.length === 0) return Swal.fire('خطأ', 'أضف جهازاً واحداً على الأقل', 'error');
+        
+        const total = updateRepairInvoiceTotal();
+        const repair = {
+            id: Date.now(),
+            client,
+            phone,
+            devices: devices,
+            status: devices.some(d => d.status !== 'تم الصيانة') ? 'قيد الصيانة' : 'تم الصيانة',
+            details: devices.map(d => `${d.name}: ${d.issue}`).join(' | '),
+            amount: total,
+            usedProducts: repairInvoiceItems.map(item => `${item.name} x${item.qty}`).join(', '),
+            date: new Date().toLocaleString(),
+            isDraft: true,
+            items: JSON.parse(JSON.stringify(repairInvoiceItems))
+        };
+        state.repairs.push(repair);
+        DB.set('repairs', state.repairs);
+        logAction(`حفظ مسودة صيانة للعميل ${client}`);
+        Swal.fire('تم', 'تم حفظ الصيانة كمسودة', 'success');
+        closeAddRepair();
+        renderRepairs();
+    }
+
+    function saveRepair() {
+        const client = document.getElementById('repClient').value.trim();
+        const phone = document.getElementById('repPhone').value.trim();
+        if (!client || !phone) return Swal.fire('خطأ', 'أدخل اسم العميل والموبايل', 'error');
+        
+        const devices = getDevicesData();
+        if (devices.length === 0) return Swal.fire('خطأ', 'أضف جهازاً واحداً على الأقل', 'error');
+        
+        // Check if all devices are completed
+        const allCompleted = devices.every(d => d.status === 'تم الصيانة');
+        if (!allCompleted) {
+            const confirm = Swal.fire({
+                title: 'تنبيه',
+                text: 'بعض الأجهزة لم تكتمل صيانتها بعد. هل تريد المتابعة؟',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، متابعة',
+                cancelButtonText: 'إلغاء'
+            });
+            if (!confirm) return;
+        }
+
+        // Deduct products from inventory
+        let usedProductsList = [];
+        repairInvoiceItems.forEach(item => {
+            const prod = state.products.find(p => p.id === item.id);
+            if (prod && prod.qty >= item.qty) {
+                prod.qty -= item.qty;
+                prod.sales = (prod.sales || 0) + item.qty;
+                usedProductsList.push(`${item.name} x${item.qty}`);
+            }
+        });
+        DB.set('products', state.products);
+
+        const total = updateRepairInvoiceTotal();
+        // Add to drawer
+        state.drawer += total;
+        DB.set('drawer', state.drawer);
+
+        const now = new Date().toLocaleString();
+
+        if (window._editRepairIndex !== null && window._editRepairIndex !== undefined) {
+            const idx = window._editRepairIndex;
+            state.repairs[idx].client = client;
+            state.repairs[idx].phone = phone;
+            state.repairs[idx].devices = devices;
+            state.repairs[idx].status = allCompleted ? 'تم الصيانة' : 'قيد الصيانة';
+            state.repairs[idx].details = devices.map(d => `${d.name}: ${d.issue}`).join(' | ');
+            state.repairs[idx].amount = total;
+            state.repairs[idx].usedProducts = usedProductsList.join(', ');
+            state.repairs[idx].date = now;
+            state.repairs[idx].isDraft = false;
+            state.repairs[idx].items = JSON.parse(JSON.stringify(repairInvoiceItems));
+            DB.set('repairs', state.repairs);
+            logAction(`تعديل صيانة ${client} - ${total} ج.م`);
+            Swal.fire('تم', 'تم تعديل الصيانة', 'success');
+        } else {
+            const repair = { 
+                id: Date.now(), 
+                client, phone,
+                devices: devices,
+                status: allCompleted ? 'تم الصيانة' : 'قيد الصيانة',
+                details: devices.map(d => `${d.name}: ${d.issue}`).join(' | '),
+                amount: total, 
+                usedProducts: usedProductsList.join(', '), 
+                date: now,
+                isDraft: false,
+                items: JSON.parse(JSON.stringify(repairInvoiceItems))
+            };
+            state.repairs.push(repair);
+            DB.set('repairs', state.repairs);
+            logAction(`صيانة جديدة للعميل ${client} - ${total} ج.م`);
+            Swal.fire('تم', `تم إضافة الصيانة والمبلغ ${total} ج.م أضيف للدرج`, 'success');
+        }
+        
+        closeAddRepair();
+        renderRepairs();
+        renderProducts();
+        window._editRepairIndex = null;
+        repairInvoiceItems = [];
+    }
+
+    function renderRepairs() {
+        const search = document.getElementById('repairSearch').value.toLowerCase();
+        const list = state.repairs.filter(r => 
+            r.client.toLowerCase().includes(search) || 
+            r.phone.includes(search)
+        );
+        const tbody = document.getElementById('repairsTable');
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center">لا توجد صيانة</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = list.map((r, i) => {
+            const realIndex = state.repairs.indexOf(r);
+            const statusClass = r.status === 'تم الصيانة' ? 'badge-success' : 
+                               r.status === 'منتظر قطعة' ? 'badge-warning' : 'badge-info';
+            const draftBadge = r.isDraft ? '<span class="badge badge-secondary">مسودة</span>' : '';
+            const devicesList = r.devices?.map(d => 
+                `<span class="badge ${d.status === 'تم الصيانة' ? 'badge-success' : 'badge-warning'}" style="margin:2px;">${d.name}</span>`
+            ).join(' ') || 'غير محدد';
+            return `
+            <tr>
+                <td>${r.client}</td>
+                <td>${r.phone}</td>
+                <td>${devicesList}</td>
+                <td><span class="badge ${statusClass}">${r.status}</span> ${draftBadge}</td>
+                <td>${r.amount} ج.م</td>
+                <td>${r.date || 'غير مسجل'}</td>
+                <td>
+                    ${hasPermission('edit_repairs') ? `<button class="btn btn-warning btn-sm" onclick="editRepair(${realIndex})"><i class="fas fa-edit"></i></button>` : ''}
+                    ${hasPermission('delete_repairs') ? `<button class="btn btn-danger btn-sm" onclick="deleteRepair(${realIndex})"><i class="fas fa-trash"></i></button>` : ''}
+                    ${r.isDraft ? `<button class="btn btn-success btn-sm" onclick="completeRepair(${realIndex})"><i class="fas fa-check"></i> تسليم</button>` : ''}
+                    <button class="btn btn-info btn-sm" onclick="viewRepairInvoice(${realIndex})"><i class="fas fa-file-invoice"></i></button>
+                </td>
+            </tr>
+        `}).join('');
+    }
+
+    function viewRepairInvoice(index) {
+        const r = state.repairs[index];
+        let devicesHtml = '';
+        if (r.devices && r.devices.length > 0) {
+            devicesHtml = r.devices.map(d => `
+                <div class="invoice-item">
+                    <span>${d.name}</span>
+                    <span>${d.status} - ${d.amount || 0} ج.م</span>
+                </div>
+            `).join('');
+        } else {
+            devicesHtml = '<div class="text-muted">لا توجد أجهزة</div>';
+        }
+        
+        let itemsHtml = '';
+        if (r.items && r.items.length > 0) {
+            itemsHtml = r.items.map(item => `
+                <div class="invoice-item">
+                    <span>${item.name}</span>
+                    <span>${item.qty} × ${item.sell} = ${item.qty * item.sell} ج.م</span>
+                </div>
+            `).join('');
+        } else {
+            itemsHtml = '<div class="text-muted">لا توجد منتجات</div>';
+        }
+        
+        Swal.fire({
+            title: `فاتورة صيانة - ${r.client}`,
+            html: `
+                <div style="text-align:right;">
+                    <p><strong>الهاتف:</strong> ${r.phone}</p>
+                    <p><strong>الحالة:</strong> ${r.status}</p>
+                    <p><strong>التاريخ:</strong> ${r.date || 'غير مسجل'}</p>
+                    <hr>
+                    <h4>الأجهزة:</h4>
+                    ${devicesHtml}
+                    <hr>
+                    <h4>المنتجات المستخدمة:</h4>
+                    ${itemsHtml}
+                    <hr>
+                    <h3 style="color:var(--primary);">الإجمالي: ${r.amount} ج.م</h3>
+                    <p><strong>التفاصيل:</strong> ${r.details || 'لا توجد'}</p>
+                    <p><strong>قطع مستخدمة:</strong> ${r.usedProducts || 'لا شيء'}</p>
+                </div>
+            `,
+            width: 600,
+            confirmButtonText: 'إغلاق'
+        });
+    }
+
+    function deleteRepair(index) {
+        if (!hasPermission('delete_repairs')) return Swal.fire('خطأ', 'ليس لديك صلاحية لحذف الصيانة', 'error');
+        const r = state.repairs[index];
+        Swal.fire({ title: 'تأكيد الحذف', text: `حذف صيانة ${r.client}؟`, icon: 'warning', showCancelButton: true }).then(res => {
+            if (res.isConfirmed) {
+                state.repairs.splice(index, 1);
+                DB.set('repairs', state.repairs);
+                renderRepairs();
+                logAction(`حذف صيانة ${r.client}`);
+                Swal.fire('تم', 'تم الحذف', 'success');
+            }
+        });
+    }
+
+    function completeRepair(index) {
+        const r = state.repairs[index];
+        if (r.isDraft) {
+            // Complete draft - add to drawer and mark as done
+            const total = r.amount || 0;
+            state.drawer += total;
+            DB.set('drawer', state.drawer);
+            r.isDraft = false;
+            r.status = 'تم الصيانة';
+            // Mark all devices as completed
+            if (r.devices) {
+                r.devices.forEach(d => d.status = 'تم الصيانة');
+            }
+            // Deduct products if any
+            if (r.items) {
+                r.items.forEach(item => {
+                    const prod = state.products.find(p => p.id === item.id);
+                    if (prod && prod.qty >= item.qty) {
+                        prod.qty -= item.qty;
+                        prod.sales = (prod.sales || 0) + item.qty;
+                    }
+                });
+                DB.set('products', state.products);
+            }
+            DB.set('repairs', state.repairs);
+            renderRepairs();
+            renderProducts();
+            logAction(`إكمال مسودة صيانة ${r.client} - ${total} ج.م`);
+            Swal.fire('تم', `تم تسليم الصيانة وإضافة ${total} ج.م للدرج`, 'success');
+            return;
+        }
+        
+        if (!hasPermission('complete_repairs')) return Swal.fire('خطأ', 'ليس لديك صلاحية لإنهاء الصيانة', 'error');
+        r.status = 'تم الصيانة';
+        if (r.devices) {
+            r.devices.forEach(d => d.status = 'تم الصيانة');
+        }
+        DB.set('repairs', state.repairs);
+        renderRepairs();
+        logAction(`إكمال صيانة ${r.client}`);
+        Swal.fire('تم', 'تم تسليم للزبون', 'success');
+    }
+
+    function editRepair(index) {
+        if (!hasPermission('edit_repairs')) return Swal.fire('خطأ', 'ليس لديك صلاحية لتعديل الصيانة', 'error');
+        const r = state.repairs[index];
+        
+        // Open edit modal
+        document.getElementById('editRepairModal').classList.add('active');
+        const container = document.getElementById('editRepairContent');
+        
+        // Build edit form with devices
+        let devicesHtml = '';
+        if (r.devices && r.devices.length > 0) {
+            r.devices.forEach((d, i) => {
+                const statuses = ['قيد الصيانة', 'تم الصيانة', 'منتظر قطعة'];
+                const statusOptions = statuses.map(s => 
+                    `<option value="${s}" ${d.status === s ? 'selected' : ''}>${s}</option>`
+                ).join('');
+                devicesHtml += `
+                    <div class="device-item">
+                        <div>
+                            <label class="label" style="font-size:0.8rem;">الجهاز ${i+1}</label>
+                            <input class="input edit-device-name" style="font-size:0.9rem;padding:6px 10px;" value="${d.name || ''}">
+                        </div>
+                        <div>
+                            <label class="label" style="font-size:0.8rem;">المشكلة</label>
+                            <input class="input edit-device-issue" style="font-size:0.9rem;padding:6px 10px;" value="${d.issue || ''}">
+                        </div>
+                        <div>
+                            <label class="label" style="font-size:0.8rem;">الحالة</label>
+                            <select class="select edit-device-status" style="font-size:0.9rem;padding:6px 10px;">${statusOptions}</select>
+                        </div>
+                        <div>
+                            <label class="label" style="font-size:0.8rem;">المبلغ</label>
+                            <input class="input edit-device-amount" type="number" style="font-size:0.9rem;padding:6px 10px;" value="${d.amount || 0}">
+                        </div>
+                        <div style="grid-column:1/-1;">
+                            <input class="input edit-device-details" style="font-size:0.8rem;padding:4px 8px;" placeholder="تفاصيل إضافية..." value="${d.details || ''}">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        container.innerHTML = `
+            <div class="grid-2">
+                <div><label class="label">اسم العميل</label><input id="editRepClient" class="input" value="${r.client}"></div>
+                <div><label class="label">رقم الموبايل</label><input id="editRepPhone" class="input" value="${r.phone}"></div>
+            </div>
+            <div class="card">
+                <h4><i class="fas fa-devices"></i> الأجهزة <button class="btn btn-success btn-sm" onclick="addEditDevice()"><i class="fas fa-plus"></i> إضافة جهاز</button></h4>
+                <div id="editDevicesContainer">${devicesHtml || '<div class="text-muted text-center">لا توجد أجهزة</div>'}</div>
+            </div>
+            <div class="card">
+                <h4><i class="fas fa-boxes"></i> قطع الغيار المستخدمة</h4>
+                <div id="editUsedProducts">
+                    ${r.items && r.items.length > 0 ? r.items.map(item => `
+                        <div class="invoice-item">
+                            <span>${item.name} (${item.category || 'غير مصنف'})</span>
+                            <span>${item.qty} × ${item.sell} = ${item.qty * item.sell} ج.م</span>
+                        </div>
+                    `).join('') : '<div class="text-muted">لا توجد منتجات</div>'}
+                </div>
+                <div class="invoice-total">الإجمالي الحالي: ${r.amount} ج.م</div>
+            </div>
+            <div class="flex mt-16">
+                <button class="btn btn-success" onclick="saveEditRepair(${index})"><i class="fas fa-save"></i> حفظ التعديلات</button>
+                <button class="btn btn-danger" onclick="closeEditRepair()">إلغاء</button>
+            </div>
+        `;
+        
+        window._editingRepairIndex = index;
+    }
+
+    function addEditDevice() {
+        const container = document.getElementById('editDevicesContainer');
+        const div = document.createElement('div');
+        div.className = 'device-item';
+        div.innerHTML = `
+            <div>
+                <label class="label" style="font-size:0.8rem;">جهاز جديد</label>
+                <input class="input edit-device-name" style="font-size:0.9rem;padding:6px 10px;" placeholder="اسم الجهاز">
+            </div>
+            <div>
+                <label class="label" style="font-size:0.8rem;">المشكلة</label>
+                <input class="input edit-device-issue" style="font-size:0.9rem;padding:6px 10px;" placeholder="المشكلة">
+            </div>
+            <div>
+                <label class="label" style="font-size:0.8rem;">الحالة</label>
+                <select class="select edit-device-status" style="font-size:0.9rem;padding:6px 10px;">
+                    <option value="قيد الصيانة">قيد الصيانة</option>
+                    <option value="تم الصيانة">تم الصيانة</option>
+                    <option value="منتظر قطعة">منتظر قطعة</option>
+                </select>
+            </div>
+            <div>
+                <label class="label" style="font-size:0.8rem;">المبلغ</label>
+                <input class="input edit-device-amount" type="number" style="font-size:0.9rem;padding:6px 10px;" placeholder="0">
+            </div>
+            <div style="grid-column:1/-1;">
+                <input class="input edit-device-details" style="font-size:0.8rem;padding:4px 8px;" placeholder="تفاصيل إضافية...">
+            </div>
+            <button class="btn btn-danger btn-xs" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>
+        `;
+        container.appendChild(div);
+    }
+
+    function closeEditRepair() {
+        document.getElementById('editRepairModal').classList.remove('active');
+    }
+
+    function saveEditRepair(index) {
+        const client = document.getElementById('editRepClient').value.trim();
+        const phone = document.getElementById('editRepPhone').value.trim();
+        if (!client || !phone) return Swal.fire('خطأ', 'أدخل اسم العميل والموبايل', 'error');
+        
+        // Collect devices from edit form
+        const deviceEls = document.querySelectorAll('#editDevicesContainer .device-item');
+        const devices = [];
+        deviceEls.forEach(el => {
+            const name = el.querySelector('.edit-device-name')?.value || '';
+            const issue = el.querySelector('.edit-device-issue')?.value || '';
+            const status = el.querySelector('.edit-device-status')?.value || 'قيد الصيانة';
+            const amount = parseFloat(el.querySelector('.edit-device-amount')?.value) || 0;
+            const details = el.querySelector('.edit-device-details')?.value || '';
+            if (name) devices.push({ name, issue, status, amount, details });
+        });
+        
+        if (devices.length === 0) return Swal.fire('خطأ', 'أضف جهازاً واحداً على الأقل', 'error');
+        
+        const total = devices.reduce((sum, d) => sum + (d.amount || 0), 0);
+        const allCompleted = devices.every(d => d.status === 'تم الصيانة');
+        
+        const r = state.repairs[index];
+        r.client = client;
+        r.phone = phone;
+        r.devices = devices;
+        r.status = allCompleted ? 'تم الصيانة' : 'قيد الصيانة';
+        r.details = devices.map(d => `${d.name}: ${d.issue}`).join(' | ');
+        r.amount = total;
+        r.date = new Date().toLocaleString();
+        r.isDraft = false;
+        
+        DB.set('repairs', state.repairs);
+        closeEditRepair();
+        renderRepairs();
+        logAction(`تعديل صيانة ${client}`);
+        Swal.fire('تم', 'تم تحديث الصيانة بنجاح', 'success');
+    }
+
+    // ============================================================
+    //  DRAWER
+    // ============================================================
+    function openDrawer() {
+        if (!hasPermission('view_drawer')) return Swal.fire('خطأ', 'ليس لديك صلاحية لعرض الدرج', 'error');
+        document.getElementById('drawerModal').classList.add('active');
+        document.getElementById('drawerBalance').innerText = state.drawer;
+        document.getElementById('drawerAmount').value = '';
+        document.getElementById('drawerReason').value = '';
+    }
+
+    function closeDrawer() { document.getElementById('drawerModal').classList.remove('active'); }
+
+    function drawerAction(action) {
+        if (!hasPermission('manage_drawer')) return Swal.fire('خطأ', 'ليس لديك صلاحية لإدارة الدرج', 'error');
+        const amount = parseFloat(document.getElementById('drawerAmount').value);
+        const reason = document.getElementById('drawerReason').value.trim();
+        if (!amount || amount <= 0) return Swal.fire('خطأ', 'أدخل مبلغ صحيح', 'error');
+        if (action === 'withdraw' && amount > state.drawer) return Swal.fire('خطأ', 'الرصيد غير كاف', 'error');
+        if (action === 'withdraw') state.drawer -= amount;
+        else state.drawer += amount;
+        DB.set('drawer', state.drawer);
+        document.getElementById('drawerBalance').innerText = state.drawer;
+        logAction(`${action === 'withdraw' ? 'سحب' : 'إيداع'} ${amount} ج.م - ${reason || 'بدون سبب'}`);
+        Swal.fire('تم', `تم ${action === 'withdraw' ? 'سحب' : 'إيداع'} ${amount} ج.م`, 'success');
+    }
+
+    // ============================================================
+    //  SUPPLIERS
+    // ============================================================
+    function addSupplier() {
+        if (!hasPermission('manage_suppliers')) return Swal.fire('خطأ', 'ليس لديك صلاحية لإدارة الموردين', 'error');
+        const name = document.getElementById('supplierName').value.trim();
+        if (!name) return Swal.fire('خطأ', 'أدخل اسم المورد', 'error');
+        state.suppliers.push({ id: Date.now(), name });
+        DB.set('suppliers', state.suppliers);
+        if (!state.supplierTransactions[name]) state.supplierTransactions[name] = [];
+        DB.set('supplierTransactions', state.supplierTransactions);
+        document.getElementById('supplierName').value = '';
+        renderSuppliers();
+        logAction(`إضافة مورد ${name}`);
+        Swal.fire('تم', 'تم إضافة المورد', 'success');
+    }
+
+    function renderSuppliers() {
+        const tbody = document.getElementById('suppliersTable');
+        if (state.suppliers.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center">لا توجد موردين</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = state.suppliers.map((s, i) => `
+            <tr>
+                <td>${s.name}</td>
+                <td>${(state.supplierTransactions[s.name] || []).length} معاملة</td>
+                <td>
+                    <button class="btn btn-info btn-sm" onclick="viewSupplierDetails('${s.name}')"><i class="fas fa-eye"></i> تفاصيل</button>
+                    ${hasPermission('manage_suppliers') ? `<button class="btn btn-danger btn-sm" onclick="deleteSupplier(${i})"><i class="fas fa-trash"></i></button>` : ''}
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function deleteSupplier(i) {
+        const s = state.suppliers[i];
+        Swal.fire({ title: 'تأكيد الحذف', text: `حذف ${s.name}؟`, icon: 'warning', showCancelButton: true }).then(r => {
+            if (r.isConfirmed) {
+                state.suppliers.splice(i, 1);
+                DB.set('suppliers', state.suppliers);
+                renderSuppliers();
+                logAction(`حذف مورد ${s.name}`);
+            }
+        });
+    }
+
+    function viewSupplierDetails(name) {
+        state.currentSupplierId = name;
+        document.getElementById('supplierDetailName').textContent = name;
+        document.getElementById('supplierDetailsModal').classList.add('active');
+        state.supplierSortField = 'date';
+        state.supplierSortAsc = true;
+        renderSupplierTransactions(name);
+    }
+
+    function sortSupplierTransactions(field) {
+        if (state.supplierSortField === field) {
+            state.supplierSortAsc = !state.supplierSortAsc;
+        } else {
+            state.supplierSortField = field;
+            state.supplierSortAsc = true;
+        }
+        document.querySelectorAll('.sort-icon').forEach(el => {
+            el.innerHTML = '<i class="fas fa-sort"></i>';
+        });
+        const icon = document.getElementById(`sort-${field}`);
+        if (icon) {
+            icon.innerHTML = state.supplierSortAsc ? '<i class="fas fa-sort-up"></i>' : '<i class="fas fa-sort-down"></i>';
+        }
+        renderSupplierTransactions(state.currentSupplierId);
+    }
+
+    function renderSupplierTransactions(name) {
+        const tbody = document.getElementById('supplierTransactionsTable');
+        let transactions = state.supplierTransactions[name] || [];
+        const field = state.supplierSortField;
+        const asc = state.supplierSortAsc;
+        transactions = [...transactions].sort((a, b) => {
+            let valA = a[field] || '';
+            let valB = b[field] || '';
+            if (field === 'amount' || field === 'qty') {
+                valA = parseFloat(valA) || 0;
+                valB = parseFloat(valB) || 0;
+            } else {
+                valA = String(valA);
+                valB = String(valB);
+            }
+            if (valA < valB) return asc ? -1 : 1;
+            if (valA > valB) return asc ? 1 : -1;
+            return 0;
+        });
+        if (transactions.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center">لا توجد معاملات</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = transactions.map(t => `
+            <tr>
+                <td>${t.date || 'غير مسجل'}</td>
+                <td><span class="badge ${t.type === 'شراء' ? 'badge-success' : 'badge-warning'}">${t.type}</span></td>
+                <td>${t.product}</td>
+                <td>${t.qty || 1}</td>
+                <td>${t.amount || 0} ج.م</td>
+            </tr>
+        `).join('');
+    }
+
+    function supplierBuyFromDetail() {
+        const name = state.currentSupplierId;
+        Swal.fire({
+            title: `شراء من ${name}`,
+            html: `
+                <input id="buyProduct" class="input" placeholder="اسم المنتج" style="margin-bottom:8px;">
+                <input id="buyQty" class="input" type="number" placeholder="الكمية" style="margin-bottom:8px;" value="1">
+                <input id="buyPrice" class="input" type="number" placeholder="سعر الشراء للوحدة">
+                <select id="buyCategory" class="select" style="margin-top:8px;">
+                    <option value="سوفت وير">سوفت وير</option>
+                    <option value="هارد وير">هارد وير</option>
+                    <option value="قطع غيار">قطع غيار</option>
+                </select>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'شراء',
+            cancelButtonText: 'إلغاء',
+            preConfirm: () => {
+                const product = document.getElementById('buyProduct').value.trim();
+                const qty = parseInt(document.getElementById('buyQty').value) || 1;
+                const price = parseFloat(document.getElementById('buyPrice').value) || 0;
+                const category = document.getElementById('buyCategory').value;
+                if (!product) { Swal.showValidationMessage('أدخل اسم المنتج'); return; }
+                return { product, qty, price, category };
+            }
+        }).then(res => {
+            if (res.isConfirmed && res.value) {
+                const { product, qty, price, category } = res.value;
+                for (let i = 0; i < qty; i++) {
+                    state.products.push({ id: Date.now() + i, name: product, qty: 1, sell: price * 1.3, buy: price, image: '', category, sales: 0 });
+                }
+                DB.set('products', state.products);
+                if (!state.supplierTransactions[name]) state.supplierTransactions[name] = [];
+                state.supplierTransactions[name].push({
+                    date: new Date().toLocaleString(),
+                    type: 'شراء',
+                    product: product,
+                    qty: qty,
+                    amount: price * qty
+                });
+                DB.set('supplierTransactions', state.supplierTransactions);
+                renderProducts();
+                renderSupplierTransactions(name);
+                logAction(`شراء من ${name}: ${product} x${qty}`);
+                Swal.fire('تم', 'تمت العملية بنجاح', 'success');
+            }
+        });
+    }
+
+    function supplierSellFromDetail() {
+        const name = state.currentSupplierId;
+        const options = {};
+        state.products.forEach(p => { options[p.id] = `${p.name} (${p.qty})`; });
+        if (Object.keys(options).length === 0) return Swal.fire('خطأ', 'لا توجد منتجات للبيع', 'error');
+        Swal.fire({
+            title: `بيع لـ ${name}`,
+            text: 'اختر منتج من القائمة',
+            input: 'select',
+            inputOptions: options,
+            showCancelButton: true,
+            confirmButtonText: 'بيع',
+            cancelButtonText: 'إلغاء'
+        }).then(res => {
+            if (res.value) {
+                const prod = state.products.find(p => p.id == res.value);
+                if (prod && prod.qty > 0) {
+                    prod.qty -= 1;
+                    prod.sales = (prod.sales || 0) + 1;
+                    state.drawer += prod.sell;
+                    DB.set('products', state.products);
+                    DB.set('drawer', state.drawer);
+                    if (!state.supplierTransactions[name]) state.supplierTransactions[name] = [];
+                    state.supplierTransactions[name].push({
+                        date: new Date().toLocaleString(),
+                        type: 'بيع',
+                        product: prod.name,
+                        qty: 1,
+                        amount: prod.sell
+                    });
+                    DB.set('supplierTransactions', state.supplierTransactions);
+                    renderProducts();
+                    renderSupplierTransactions(name);
+                    logAction(`بيع لـ ${name}: ${prod.name}`);
+                    Swal.fire('تم', `تم بيع ${prod.name}`, 'success');
+                } else Swal.fire('خطأ', 'المنتج غير متوفر', 'error');
+            }
+        });
+    }
+
+    function closeSupplierDetails() {
+        document.getElementById('supplierDetailsModal').classList.remove('active');
+    }
+
+    // ============================================================
+    //  EXPORTS
+    // ============================================================
+    function exportSupplierTransactions() {
+        const name = state.currentSupplierId;
+        const transactions = state.supplierTransactions[name] || [];
+        const content = document.createElement('div');
+        content.style.padding = '20px';
+        content.style.fontFamily = 'Arial, sans-serif';
+        content.innerHTML = `
+            <h2 style="text-align:center;">تقرير معاملات المورد: ${name}</h2>
+            <table style="width:100%;border-collapse:collapse;margin-top:20px;" border="1">
+                <thead><tr style="background:#f0f0f0;">
+                    <th style="padding:8px;">التاريخ</th><th style="padding:8px;">النوع</th>
+                    <th style="padding:8px;">المنتج</th><th style="padding:8px;">الكمية</th><th style="padding:8px;">المبلغ</th>
+                </tr></thead>
+                <tbody>${transactions.map(t => `
+                    <tr><td style="padding:8px;">${t.date || ''}</td>
+                    <td style="padding:8px;">${t.type}</td>
+                    <td style="padding:8px;">${t.product}</td>
+                    <td style="padding:8px;">${t.qty || 1}</td>
+                    <td style="padding:8px;">${t.amount || 0} ج.م</td></tr>
+                `).join('')}</tbody>
+            </table>
+        `;
+        document.body.appendChild(content);
+        html2canvas(content).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 190;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+            doc.save(`supplier_${name}.pdf`);
+            document.body.removeChild(content);
+        });
+    }
+
+    function exportLogPDF() {
+        if (!hasPermission('export_reports')) return Swal.fire('خطأ', 'ليس لديك صلاحية لتصدير التقارير', 'error');
+        const content = document.createElement('div');
+        content.style.padding = '20px';
+        content.style.fontFamily = 'Arial, sans-serif';
+        content.innerHTML = `
+            <h2 style="text-align:center;">سجل النظام</h2>
+            <table style="width:100%;border-collapse:collapse;margin-top:20px;" border="1">
+                <thead><tr style="background:#f0f0f0;">
+                    <th style="padding:8px;">الوقت</th><th style="padding:8px;">المستخدم</th><th style="padding:8px;">الإجراء</th>
+                </tr></thead>
+                <tbody>${state.logs.slice(-50).reverse().map(l => `
+                    <tr><td style="padding:8px;">${l.time}</td>
+                    <td style="padding:8px;">${l.user}</td>
+                    <td style="padding:8px;">${l.action}</td></tr>
+                `).join('')}</tbody>
+            </table>
+        `;
+        document.body.appendChild(content);
+        html2canvas(content).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 190;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+            doc.save('log.pdf');
+            document.body.removeChild(content);
+        });
+    }
+
+    function exportInventoryPDF() {
+        if (!hasPermission('export_reports')) return Swal.fire('خطأ', 'ليس لديك صلاحية لتصدير التقارير', 'error');
+        const content = document.createElement('div');
+        content.style.padding = '20px';
+        content.style.fontFamily = 'Arial, sans-serif';
+        content.innerHTML = `
+            <h2 style="text-align:center;">تقرير الجرد</h2>
+            <table style="width:100%;border-collapse:collapse;margin-top:20px;" border="1">
+                <thead><tr style="background:#f0f0f0;">
+                    <th style="padding:8px;">المنتج</th><th style="padding:8px;">القسم</th>
+                    <th style="padding:8px;">الكمية</th><th style="padding:8px;">سعر البيع</th>
+                    <th style="padding:8px;">سعر الشراء</th><th style="padding:8px;">المبيعات</th>
+                </tr></thead>
+                <tbody>${state.products.map(p => `
+                    <tr><td style="padding:8px;">${p.name}</td>
+                    <td style="padding:8px;">${p.category || 'غير مصنف'}</td>
+                    <td style="padding:8px;">${p.qty}</td>
+                    <td style="padding:8px;">${p.sell} ج.م</td>
+                    <td style="padding:8px;">${p.buy || 0} ج.م</td>
+                    <td style="padding:8px;">${p.sales || 0}</td></tr>
+                `).join('')}</tbody>
+            </table>
+            <p style="margin-top:20px;"><strong>إجمالي الدرج:</strong> ${state.drawer} ج.م</p>
+        `;
+        document.body.appendChild(content);
+        html2canvas(content).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 190;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+            doc.save('inventory.pdf');
+            document.body.removeChild(content);
+        });
+    }
+
+    function exportSuppliersReport() {
+        if (!hasPermission('export_reports')) return Swal.fire('خطأ', 'ليس لديك صلاحية لتصدير التقارير', 'error');
+        const content = document.createElement('div');
+        content.style.padding = '20px';
+        content.style.fontFamily = 'Arial, sans-serif';
+        let rows = '';
+        state.suppliers.forEach(s => {
+            const trans = state.supplierTransactions[s.name] || [];
+            const totalBuy = trans.filter(t => t.type === 'شراء').reduce((sum, t) => sum + t.amount, 0);
+            const totalSell = trans.filter(t => t.type === 'بيع').reduce((sum, t) => sum + t.amount, 0);
+            rows += `
+                <tr><td style="padding:8px;">${s.name}</td>
+                <td style="padding:8px;">${trans.length}</td>
+                <td style="padding:8px;">${totalBuy} ج.م</td>
+                <td style="padding:8px;">${totalSell} ج.م</td></tr>
+            `;
+        });
+        content.innerHTML = `
+            <h2 style="text-align:center;">تقرير الموردين</h2>
+            <table style="width:100%;border-collapse:collapse;margin-top:20px;" border="1">
+                <thead><tr style="background:#f0f0f0;">
+                    <th style="padding:8px;">المورد</th><th style="padding:8px;">عدد المعاملات</th>
+                    <th style="padding:8px;">إجمالي المشتريات</th><th style="padding:8px;">إجمالي المبيعات</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+        document.body.appendChild(content);
+        html2canvas(content).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 190;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            doc.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+            doc.save('suppliers_report.pdf');
+            document.body.removeChild(content);
+        });
+    }
+
+    // ============================================================
+    //  LOGS
+    // ============================================================
+    function logAction(action) {
+        state.logs.push({ time: new Date().toLocaleString(), user: state.currentUser?.name || 'System', action });
+        if (state.logs.length > 500) state.logs.shift();
+        DB.set('logs', state.logs);
+        renderLogs();
+    }
+
+    function renderLogs() {
+        if (!hasPermission('view_logs')) {
+            document.getElementById('logTable').innerHTML = '<tr><td colspan="3" class="text-center">ليس لديك صلاحية لعرض السجل</td></tr>';
+            return;
+        }
+        const tbody = document.getElementById('logTable');
+        if (state.logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="3" class="text-center">لا توجد سجلات</td></tr>`;
+            return;
+        }
+        tbody.innerHTML = state.logs.slice(-50).reverse().map(l => `
+            <tr><td>${l.time}</td><td>${l.user}</td><td>${l.action}</td></tr>
+        `).join('');
+    }
+
+    // ============================================================
+    //  REPORTS
+    // ============================================================
+    function generateReport() {
+        if (!hasPermission('view_reports')) return Swal.fire('خطأ', 'ليس لديك صلاحية لعرض التقارير', 'error');
+        const totalProducts = state.products.reduce((s, p) => s + p.qty, 0);
+        const totalValue = state.products.reduce((s, p) => s + (p.qty * p.sell), 0);
+        const totalCost = state.products.reduce((s, p) => s + (p.qty * (p.buy || 0)), 0);
+        const totalSales = state.products.reduce((s, p) => s + (p.sales || 0), 0);
+        const profit = totalValue - totalCost;
+        const completedRepairs = state.repairs.filter(r => r.status === 'تم الصيانة' && !r.isDraft).length;
+        document.getElementById('reportResult').innerHTML = `
+            <div class="grid-3">
+                <div class="card"><strong>إجمالي المنتجات</strong><br>${totalProducts}</div>
+                <div class="card"><strong>قيمة المخزون (بيع)</strong><br>${totalValue} ج.م</div>
+                <div class="card"><strong>الأرباح المتوقعة</strong><br>${profit} ج.م</div>
+            </div>
+            <div class="grid-3">
+                <div class="card"><strong>الدرج النقدي</strong><br>${state.drawer} ج.م</div>
+                <div class="card"><strong>إجمالي الصيانات</strong><br>${state.repairs.length}</div>
+                <div class="card"><strong>الصيانات المكتملة</strong><br>${completedRepairs}</div>
+            </div>
+        `;
+        logAction('تقرير جرد');
+    }
+
+    // ============================================================
+    //  SETTINGS PANELS
+    // ============================================================
+    function showSettingsPanel(panel) {
+        document.querySelectorAll('.settings-sidebar button').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.settings-panel').forEach(p => p.classList.remove('active'));
+        document.querySelector(`.settings-sidebar button[onclick*="${panel}"]`)?.classList.add('active');
+        document.getElementById(`panel-${panel}`)?.classList.add('active');
+    }
+
+    // ============================================================
+    //  THEME & NAVIGATION
+    // ============================================================
+    function toggleTheme() { document.body.classList.toggle('dark'); }
+
+    function showSection(section) {
+        ['products', 'repairs', 'settings'].forEach(s => {
+            document.getElementById(`section-${s}`).style.display = s === section ? 'block' : 'none';
+        });
+        if (section === 'products') setView(state.productView || 'grid');
+    }
+
+    function renderAll() {
+        renderProducts();
+        renderRepairs();
+        renderEmployees();
+        renderSuppliers();
+        renderLogs();
+        renderPermissionsUI();
+        applyPermissions();
+        setView(state.productView || 'grid');
+        renderRepairProductSelect();
+        updateRepairInvoice();
+    }
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    window.onload = async function() {
+        await initSystem();
+        document.getElementById('loginScreen').style.display = 'block';
+        document.getElementById('mainHeader').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'none';
+        showSettingsPanel('employees');
+        setLanguage('ar');
+        console.log('✅ نظام كاشير الصيانة جاهز');
+        console.log('👤 admin | 🔑 admin123');
+        console.log('📱 دعم أجهزة متعددة لكل عميل');
+        console.log('🔄 إمكانية تغيير حالة كل جهاز على حدة');
+    };
+</script>
+</body>
+</html>
